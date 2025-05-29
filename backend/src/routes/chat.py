@@ -7,10 +7,8 @@ import time
 chat_bp = Blueprint('chat', __name__)
 
 # Configuração da API OpenAI
-ASSISTANT_ID = "asst_gIYVzkflbEkYkYCnJmhv5EN3"
-API_KEY = "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"
 
-client = OpenAI(api_key=API_KEY)
+if not API_KEY:
 
 # Rota para criar uma nova conversa
 @chat_bp.route('/conversations', methods=['POST'])

@@ -7,6 +7,9 @@ from flask import Flask, send_from_directory
 from src.models.user import db
 from src.routes.user import user_bp, login_manager
 from src.routes.chat import chat_bp
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
 app.config['SECRET_KEY'] = 'asdf#FGSgvasgf$5$WGT'
