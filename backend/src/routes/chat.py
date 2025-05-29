@@ -1,14 +1,26 @@
+import os
 from flask import Blueprint, request, jsonify
 from flask_login import login_required, current_user
 from src.models.user import db, Conversation, Message
 from openai import OpenAI
 import time
+from dotenv import load_dotenv # Importe para carregar do .env
+
+load_dotenv() 
 
 chat_bp = Blueprint('chat', __name__)
 
 # Configuração da API OpenAI
+ASSISTANT_ID = os.getenv("OPENAI_ASSISTANT_ID") # Obtém o Assistant ID da variável de ambiente
+API_KEY = os.getenv("OPENAI_API_KEY") # Obtém a API Key da variável de ambiente
 
+# Validação para garantir que as variáveis de ambiente foram definidas
 if not API_KEY:
+    raise ValueError("OPENAI_API_KEY environment variable not set.")
+if not ASSISTANT_ID:
+    raise ValueError("OPENAI_ASSISTANT_ID environment variable not set.")
+
+client = OpenAI(api_key=API_KEY)
 
 # Rota para criar uma nova conversa
 @chat_bp.route('/conversations', methods=['POST'])
