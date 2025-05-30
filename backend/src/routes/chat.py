@@ -20,7 +20,7 @@ if not API_KEY:
 if not ASSISTANT_ID:
     raise ValueError("OPENAI_ASSISTANT_ID environment variable not set.")
 
-client = OpenAI(api_key=API_KEY)
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Rota para criar uma nova conversa
 @chat_bp.route('/conversations', methods=['POST'])
