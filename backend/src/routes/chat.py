@@ -5,6 +5,8 @@ from src.models.user import db, Conversation, Message
 from openai import OpenAI
 import time
 from dotenv import load_dotenv # Importe para carregar do .env
+from src.models import db
+
 
 load_dotenv() 
 

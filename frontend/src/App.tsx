@@ -2,6 +2,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { ThemeProvider, AuthProvider } from './lib/context';
 import { useState, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
+import { useLocation } from 'react-router-dom';
+
 
 // Importação de páginas
 import Login from './pages/Login';

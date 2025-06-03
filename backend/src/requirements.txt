@@ -22,6 +22,7 @@ Flask-SQLAlchemy==3.0.5
 fastapi==0.115.12
 Flask==3.1.1
 Flask-Bcrypt==1.0.1
+flask-cors==6.0.0
 Flask-Login==0.6.3
 fonttools==4.58.0
 fpdf==1.7.2

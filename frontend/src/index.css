@@ -1,89 +1,210 @@
-/* frontend/src/index.css */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ISSO AQUI É O BLOCO MAIS CRÍTICO. TEM QUE ESTAR COMPLETO! */
-@layer base {
-  :root {
-    --background: 0 0% 100%; /* Branco */
-    --foreground: 222.2 47.4% 11.2%; /* Quase preto */
+/* Se quiser reaproveitar algo do seu CSS antigo, cole abaixo dessas diretivas */
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+body {
+  font-family: 'Inter', sans-serif;
+  color: var(--gray-900);
+  background-color: var(--white);
+  transition: background-color var(--transition-normal), color var(--transition-normal);
+}
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 47.4% 11.2%;
+h1, h2, h3, h4, h5, h6 {
+  color: var(--blue-dark);
+  font-weight: 600;
+}
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 47.4% 11.2%;
+/* Animações */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
 
-    --primary: 222.2 47.4% 11.2%; /* Azul escuro/preto para primário */
-    --primary-foreground: 210 40% 98%; /* Texto claro para primário */
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+@keyframes typing {
+  from { width: 0 }
+  to { width: 100% }
+}
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+.animate-fade-in {
+  animation: fadeIn var(--transition-normal);
+}
 
-    --ring: 222.2 84% 4.9%;
+.animate-slide-up {
+  animation: slideUp var(--transition-normal);
+}
 
-    --radius: 0.5rem; /* Do seu tailwind.config.js */
+.animate-pulse {
+  animation: pulse 2s infinite;
+}
 
-    /* Variáveis específicas da sidebar (DO SEU ARQUIVO ORIGINAL) */
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
+/* Estilos de botões */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  padding: var(--spacing-2) var(--spacing-4);
+  font-weight: 500;
+  transition: all var(--transition-fast);
+  cursor: pointer;
+}
 
-  .dark {
-    --background: 222.2 47.4% 11.2%; /* Quase preto */
-    --foreground: 210 40% 98%; /* Branco */
+.btn-primary {
+  background: var(--gradient-blue);
+  color: white;
+  border: none;
+  box-shadow: var(--shadow-md);
+}
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+.btn-primary:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-1px);
+}
 
-    --popover: 222.2 47.4% 11.2%;
-    --popover-foreground: 210 40% 98%;
+.btn-secondary {
+  background: var(--gray-50);
+  color: var(--gray-900);
+  border: 1px solid var(--gray-100);
+}
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --card: 222.2 47.4% 11.2%;
-    --card-foreground: 210 40% 98%;
+.btn-secondary:hover {
+  background: var(--gray-100);
+}
 
-    --primary: 210 40% 98%; /* Branco para primário */
-    --primary-foreground: 222.2 47.4% 11.2%; /* Texto escuro para primário */
+/* Estilos de inputs */
+.input-group {
+  margin-bottom: var(--spacing-4);
+}
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+.input-label {
+  display: block;
+  margin-bottom: var(--spacing-2);
+  font-weight: 500;
+  color: var(--gray-700);
+}
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+.input {
+  width: 100%;
+  padding: var(--spacing-3) var(--spacing-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--gray-300);
+  background-color: var(--white);
+  transition: all var(--transition-fast);
+}
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+.input:focus {
+  outline: none;
+  border-color: var(--blue-primary);
+  box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
+}
 
-    --ring: 217.2 32.6% 17.5%;
+/* Estilos de cards */
+.card {
+  background-color: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--spacing-6);
+  transition: all var(--transition-normal);
+}
 
-    /* Variáveis específicas da sidebar para o tema escuro (DO SEU ARQUIVO ORIGINAL) */
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+.card:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+/* Estilos para chat */
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.message-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-4);
+}
+
+.message {
+  max-width: 80%;
+  margin-bottom: var(--spacing-4);
+  animation: fadeIn var(--transition-normal);
+}
+
+.message-user {
+  margin-left: auto;
+  background-color: var(--blue-primary);
+  color: white;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 var(--radius-lg);
+  padding: var(--spacing-3) var(--spacing-4);
+}
+
+.message-assistant {
+  margin-right: auto;
+  background: var(--gradient-light);
+  color: var(--gray-900);
+  border-radius: var(--radius-lg) var(--radius-lg) var(--radius-lg) 0;
+  padding: var(--spacing-3) var(--spacing-4);
+}
+
+.typing-indicator {
+  display: inline-flex;
+  align-items: center;
+}
+
+.typing-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--blue-primary);
+  margin-right: 4px;
+}
+
+/* Estilos para sidebar */
+.sidebar {
+  background-color: var(--gray-50);
+  border-right: 1px solid var(--gray-100);
+  transition: all var(--transition-normal);
+}
+
+.sidebar-header {
+  padding: var(--spacing-4);
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.sidebar-item {
+  padding: var(--spacing-3) var(--spacing-4);
+  border-radius: var(--radius-md);
+  margin: var(--spacing-1) var(--spacing-2);
+  transition: all var(--transition-fast);
+}
+
+.sidebar-item:hover {
+  background-color: var(--gray-100);
+}
+
+.sidebar-item.active {
+  background-color: var(--blue-light);
+  color: var(--blue-dark);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .message {
+    max-width: 90%;
   }
 }

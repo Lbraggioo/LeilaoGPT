@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+
 // Configuração base do axios
 const api = axios.create({
   baseURL: '/api',
@@ -90,5 +91,7 @@ export const chatAPI = {
     return response.data as Message;
   },
 };
+
+export const createConversation = chatAPI.createConversation;
 
 export default api;

@@ -15,8 +15,13 @@ export default defineConfig({
       '/api': { // Se a rota que o frontend está chamando começar com /api
         target: 'http://localhost:5000', // URL do seu backend
         changeOrigin: true, // Necessário para reescrever o cabeçalho Host
-        rewrite: (path) => path.replace(/^\/api/, '/api'), // Isso mantém o /api no caminho
+        secure: false,
+        configure: (proxy) => {
+          proxy.on('proxyReq', (proxyReq, req, res) => {
+            proxyReq.setHeader('Origin', 'http://localhost:5173');
+        });
       },
     },
   },
+}
 })
