@@ -103,6 +103,14 @@ def after_request(response):
     response.headers['Access-Control-Allow-Credentials'] = 'true'
     return response
 
+# ─── Error Handler para debug ──────────────────────────────
+@app.errorhandler(500)
+def handle_internal_error(error):
+    """Captura erros 500 para debug"""
+    print(f"🚨 Erro 500: {error}")
+    print(f"🚨 Exception: {repr(error)}")
+    return jsonify({"error": "Internal server error", "details": str(error)}), 500
+
 # ─── Blueprints / Rotas ────────────────────────────────────
 from .routes.auth import auth_bp              # ← CORRETO: import relativo
 from .routes.user import user_bp              # ← CORRETO: import relativo  
