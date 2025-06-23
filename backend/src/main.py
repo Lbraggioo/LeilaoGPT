@@ -60,7 +60,8 @@ def handle_preflight():
     """Trata requisições OPTIONS (preflight) do CORS"""
     if request.method == "OPTIONS":
         res = make_response()
-        res.headers['Access-Control-Allow-Origin'] = '*'
+        origin = request.headers.get('Origin', 'http://localhost:8080')
+        res.headers['Access-Control-Allow-Origin'] = origin
         res.headers['Access-Control-Allow-Methods'] = 'GET,POST,PUT,DELETE,OPTIONS,PATCH'
         res.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization,X-Requested-With'
         res.headers['Access-Control-Allow-Credentials'] = 'true'
@@ -69,7 +70,8 @@ def handle_preflight():
 @app.after_request
 def after_request(response):
     """Adiciona headers CORS a todas as respostas"""
-    response.headers['Access-Control-Allow-Origin'] = '*'
+    origin = request.headers.get('Origin', 'http://localhost:8080')
+    response.headers['Access-Control-Allow-Origin'] = origin
     response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization,X-Requested-With'
     response.headers['Access-Control-Allow-Methods'] = 'GET,POST,PUT,DELETE,OPTIONS,PATCH'
     response.headers['Access-Control-Allow-Credentials'] = 'true'
