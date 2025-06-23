@@ -61,7 +61,8 @@ allowed_origins = [
     "http://localhost:5174",
     "https://leilaogpt-production.up.railway.app",
     "https://leilao-gpt.vercel.app",  # ADICIONE ESTA LINHA!
-    "https://*.vercel.app"
+    "https://*.vercel.app",
+    "https://www.leilaogpt.com.br"
 ]
 
 # Adiciona URL do Railway se existir
