@@ -1,5 +1,6 @@
 // src/lib/api.ts
-const BASE = "http://localhost:5000/api";
+const BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+
 console.log("🔍 API BASE URL:", BASE); // Para verificar
 
 /**
