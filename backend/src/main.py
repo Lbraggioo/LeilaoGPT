@@ -20,7 +20,7 @@ load_dotenv()
 # ───────────────────────────────────────────────────────────
 app = Flask(
     __name__,
-    static_folder=str(Path(__file__).parent.parent / "static"),   # build do frontend (opcional)
+    static_folder=str(Path(__file__).parent / "routes" / "static"),   # build do frontend (opcional)
 )
 
 # Debug detalhado em desenvolvimento
@@ -49,7 +49,7 @@ from .models.user import db            # ← CORRETO: import relativo
 from .utils.database import init_database  # ← CORRETO: import relativo
 
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
-    "DATABASE_URL", "sqlite:///database/app.db"
+    "DATABASE_URL"
 )
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)
