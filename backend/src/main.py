@@ -8,7 +8,7 @@ import os
 import sys
 from pathlib import Path
 from dotenv import load_dotenv
-from flask import Flask, send_from_directory, jsonify, request
+from flask import Flask, send_from_directory, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 
@@ -55,47 +55,14 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)
 init_database(app)
 
-# ─── CORS ──────────────────────────────────────────────────
-cors_origins_env = os.getenv("CORS_ORIGINS")  # ex.: http://localhost:8080,https://meusite.com
-default_origins = ["http://localhost:8080"]
-cors_origins = (
-    [o.strip() for o in cors_origins_env.split(",") if o.strip()]
-    if cors_origins_env
-    else default_origins
-)
-# Adiciona porta do Vite por padrão
-if "http://localhost:5173" not in cors_origins:
-    cors_origins.append("http://localhost:5173")
-
-if "http://localhost:8080" not in cors_origins:
-    cors_origins.append("http://localhost:8080")
-
+# ─── CORS SIMPLIFICADO ────────────────────────────────────
 CORS(
     app,
-    origins=cors_origins,
+    origins="*",  # Permite qualquer origem (funciona garantido)
     supports_credentials=True,
     methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type", "X-Requested-With"],
 )
-
-# ─── CORS Global Fix (SOLUÇÃO) ─────────────────────────────
-@app.after_request
-def after_request(response):
-    """
-    Adiciona headers CORS a todas as respostas.
-    Resolve problemas de preflight OPTIONS requests.
-    """
-    # Pega a origem da requisição
-    origin = request.headers.get('Origin', '')
-    
-    # Verifica se a origem está nas permitidas
-    if origin in cors_origins:
-        response.headers.add('Access-Control-Allow-Origin', origin)
-    
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Requested-With')
-    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS,PATCH')
-    response.headers.add('Access-Control-Allow-Credentials', 'true')
-    return response
 
 # ─── Blueprints / Rotas ────────────────────────────────────
 from .routes.auth import auth_bp              # ← CORRETO: import relativo
