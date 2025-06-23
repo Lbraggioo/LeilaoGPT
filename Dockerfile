@@ -2,26 +2,22 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y \
-    gcc \
-    postgresql-client \
-    && rm -rf /var/lib/apt/lists/*
+# Instalar dependências do sistema (simplificado)
+RUN apt-get update && \
+    apt-get install -y gcc && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# Copiar requirements do backend
+# Copiar requirements e instalar dependências Python
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copiar código do backend
+# Copiar código da aplicação
 COPY backend/ ./backend/
 COPY gunicorn.conf.py .
 
-# Copiar frontend build (será criado depois)
-COPY frontend/dist/ ./static/
-
-RUN adduser --disabled-password --gecos '' appuser && \
-    chown -R appuser:appuser /app
-USER appuser
-
+# Expor porta
 EXPOSE 5000
 
+# Comando para iniciar a aplicação
 CMD ["gunicorn", "--config", "gunicorn.conf.py", "backend.src.main:app"]
