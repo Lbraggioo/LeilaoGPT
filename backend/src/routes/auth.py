@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
-from models.user import db, User
-from utils.auth import token_required, validate_json_data
+from ..models.user import db, User  # ← CORRIGIDO
+from ..utils.auth import token_required, validate_json_data  # ← CORRIGIDO
 import re
 
 auth_bp = Blueprint("auth", __name__)

@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, send_file, send_from_directory, Response
-from models.user import db, User, Conversation, Message
-from utils.auth import token_required, admin_required
+from ..models.user import db, User, Conversation, Message  # ← CORRIGIDO
+from ..utils.auth import token_required, admin_required  # ← CORRIGIDO
 import os
 import mimetypes
 

@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
-from models.user import db, User, Conversation, Message
-from utils.auth import token_required
-from utils.openai_client import get_openai_client  # ← NOVO import
+from ..models.user import db, User, Conversation, Message  # ← CORRIGIDO
+from ..utils.auth import token_required  # ← CORRIGIDO
+from ..utils.openai_client import get_openai_client  # ← CORRIGIDO
 import os
 from datetime import datetime
 import uuid

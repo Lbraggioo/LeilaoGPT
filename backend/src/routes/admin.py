@@ -1,8 +1,8 @@
 import os
 import psutil
 from flask import Blueprint, request, jsonify
-from models.user import db, User, Conversation, Message  # ← CORRETO: import relativo
-from utils.auth import token_required, admin_required    # ← CORRETO: sem "src."
+from ..models.user import db, User, Conversation, Message  # ← CORRIGIDO
+from ..utils.auth import token_required, admin_required  # ← CORRIGIDO
 from datetime import datetime, timedelta
 from sqlalchemy import func, desc
 
@@ -242,4 +242,3 @@ def get_system_info(current_user):
         
     except Exception as e:
         return jsonify({'message': 'Erro ao obter informações do sistema'}), 500
-
