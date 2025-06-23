@@ -1,7 +1,13 @@
 // src/lib/api.ts
-const BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const isDevelopment = window.location.hostname === 'localhost' || 
+                     window.location.hostname === '127.0.0.1';
 
-console.log("🔍 API BASE URL:", BASE); // Para verificar
+const BASE = isDevelopment 
+  ? "http://localhost:5000/api"
+  : "https://leilaogpt-production.up.railway.app/api";
+
+console.log("🔍 API BASE URL:", BASE);
+console.log("🔍 Environment:", isDevelopment ? 'development' : 'production');
 
 /**
  * Helper central de chamadas REST.
@@ -25,21 +31,41 @@ export async function api<T = unknown>(
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 
-  const res = await fetch(`${BASE}${path}`, {
-    ...options,
-    headers,
-    credentials: "include",
-  });
+  try {
+    const res = await fetch(`${BASE}${path}`, {
+      ...options,
+      headers,
+      credentials: "include",
+    });
 
-  if (!res.ok) {
-    // Levanta a string retornada pelo backend como mensagem de erro
-    throw new Error(await res.text());
+    // Log para debug
+    console.log(`📡 API ${options.method || 'GET'} ${path}: ${res.status}`);
+
+    if (!res.ok) {
+      // Tenta pegar mensagem de erro do backend
+      let errorMessage = `Erro ${res.status}`;
+      try {
+        const errorData = await res.json();
+        errorMessage = errorData.message || errorMessage;
+      } catch {
+        // Se não for JSON, tenta texto
+        try {
+          errorMessage = await res.text() || errorMessage;
+        } catch {
+          // Usa mensagem padrão
+        }
+      }
+      throw new Error(errorMessage);
+    }
+
+    // Alguns endpoints (ex.: DELETE, logout) devolvem 204 No Content
+    if (res.status === 204 || res.headers.get("Content-Length") === "0") {
+      return {} as T;
+    }
+
+    return (await res.json()) as T;
+  } catch (error) {
+    console.error(`❌ API Error ${path}:`, error);
+    throw error;
   }
-
-  // Alguns endpoints (ex.: DELETE, logout) devolvem 204 No Content
-  if (res.status === 204 || res.headers.get("Content-Length") === "0") {
-    return {} as T;
-  }
-
-  return (await res.json()) as T;
 }
