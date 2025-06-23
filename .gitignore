@@ -1,0 +1,55 @@
+# ===== BACKEND PROTECTION =====
+# Arquivos sensíveis do backend
+backend/.env
+backend/.env.*
+
+# Virtual environment Python
+backend/venv/
+backend/env/
+backend/ENV/
+
+# Python cache
+backend/__pycache__/
+backend/**/__pycache__/
+backend/**/*.pyc
+backend/**/*.pyo
+backend/**/*.pyd
+
+# ===== FRONTEND PROTECTION =====
+# Node modules (caso o .gitignore do frontend falhe)
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# ===== ARQUIVOS GERAIS =====
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Backup files
+*.bak
+*.backup
+
+# Compressed files (se você tem arquivos antigos)
+*.zip
+*.rar
+*.7z
+*.tar.gz
