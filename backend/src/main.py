@@ -60,8 +60,21 @@ def handle_preflight():
     """Trata requisições OPTIONS (preflight) do CORS"""
     if request.method == "OPTIONS":
         res = make_response()
-        origin = request.headers.get('Origin', 'http://localhost:8080')
-        res.headers['Access-Control-Allow-Origin'] = origin
+        # Lista de origens permitidas
+        allowed_origins = [
+            'http://localhost:8080',
+            'http://localhost:5173', 
+            'https://leilaogpt-production.up.railway.app'
+        ]
+        
+        origin = request.headers.get('Origin')
+        print(f"🔍 Origin recebida: {origin}")  # Debug
+        
+        if origin in allowed_origins:
+            res.headers['Access-Control-Allow-Origin'] = origin
+        else:
+            res.headers['Access-Control-Allow-Origin'] = 'http://localhost:8080'
+            
         res.headers['Access-Control-Allow-Methods'] = 'GET,POST,PUT,DELETE,OPTIONS,PATCH'
         res.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization,X-Requested-With'
         res.headers['Access-Control-Allow-Credentials'] = 'true'
@@ -70,8 +83,21 @@ def handle_preflight():
 @app.after_request
 def after_request(response):
     """Adiciona headers CORS a todas as respostas"""
-    origin = request.headers.get('Origin', 'http://localhost:8080')
-    response.headers['Access-Control-Allow-Origin'] = origin
+    # Lista de origens permitidas
+    allowed_origins = [
+        'http://localhost:8080',
+        'http://localhost:5173', 
+        'https://leilaogpt-production.up.railway.app'
+    ]
+    
+    origin = request.headers.get('Origin')
+    print(f"🔍 Origin na resposta: {origin}")  # Debug
+    
+    if origin in allowed_origins:
+        response.headers['Access-Control-Allow-Origin'] = origin
+    else:
+        response.headers['Access-Control-Allow-Origin'] = 'http://localhost:8080'
+        
     response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization,X-Requested-With'
     response.headers['Access-Control-Allow-Methods'] = 'GET,POST,PUT,DELETE,OPTIONS,PATCH'
     response.headers['Access-Control-Allow-Credentials'] = 'true'
