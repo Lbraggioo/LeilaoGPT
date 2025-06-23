@@ -12,12 +12,17 @@ RUN apt-get update && \
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copiar código da aplicação
-COPY backend/ ./
+# Copiar TODO o backend mantendo a estrutura
+COPY backend/ .
+
+# Copiar gunicorn config
 COPY gunicorn.conf.py .
+
+# Adicionar diretório atual ao PYTHONPATH
+ENV PYTHONPATH=/app
 
 # Expor porta
 EXPOSE 5000
 
-# Comando corrigido - agora aponta para src.main:app
+# Comando final - agora deve funcionar
 CMD ["gunicorn", "--config", "gunicorn.conf.py", "src.main:app"]
