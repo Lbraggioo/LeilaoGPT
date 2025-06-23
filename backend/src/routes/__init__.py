@@ -1,0 +1,3 @@
+"""
+Rotas/Blueprints da aplicação
+"""

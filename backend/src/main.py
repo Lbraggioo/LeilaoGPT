@@ -43,8 +43,9 @@ app.config.update(
 jwt = JWTManager(app)
 
 # ─── Banco de Dados ────────────────────────────────────────
-from models.user import db
-from utils.database import init_database
+# Imports usando caminho absoluto do app (PYTHONPATH está configurado no Docker)
+from src.models.user import db
+from src.utils.database import init_database
 
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
@@ -52,15 +53,23 @@ db.init_app(app)
 init_database(app)
 
 # ─── CORS ───────────────────────────────────────────────────
+# Pega a URL do Railway das variáveis de ambiente
+railway_url = os.getenv("RAILWAY_STATIC_URL", "")
+allowed_origins = [
+    "http://localhost:8080",
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "https://leilaogpt-production.up.railway.app",
+]
+
+# Adiciona URL do Railway se existir
+if railway_url:
+    allowed_origins.append(f"https://{railway_url}")
+    allowed_origins.append(f"https://*.{railway_url}")
+
 CORS(
     app,
-    origins=[
-        "http://localhost:8080",
-        "http://localhost:5173",
-        "http://localhost:5174",
-        "https://leilaogpt-production.up.railway.app",
-        "https://*.railway.app"
-    ],
+    origins=allowed_origins,
     supports_credentials=True,
     methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type", "X-Requested-With"],
@@ -68,12 +77,12 @@ CORS(
 )
 
 # ─── Blueprints / Rotas ─────────────────────────────────────
-from routes.auth import auth_bp
-from routes.user import user_bp
-from routes.chat import chat_bp
-from routes.admin import admin_bp
-from routes.admin_routes import admin_routes_bp
-from routes.upload import upload_bp
+from src.routes.auth import auth_bp
+from src.routes.user import user_bp
+from src.routes.chat import chat_bp
+from src.routes.admin import admin_bp
+from src.routes.admin_routes import admin_routes_bp
+from src.routes.upload import upload_bp
 
 app.register_blueprint(auth_bp, url_prefix="/api/auth")
 app.register_blueprint(user_bp, url_prefix="/api")
@@ -95,41 +104,32 @@ def health_check():
     return jsonify(
         status="healthy", 
         message="Backend Chatbot está funcionando!",
-        environment=os.getenv("FLASK_ENV", "production")
+        environment=os.getenv("RAILWAY_ENVIRONMENT", "production"),
+        python_version=sys.version
     ), 200
 
 # ─── Rota para testar API ──────────────────────────────────
 @app.route("/api/test")
 def test_api():
+    from datetime import datetime
     return jsonify(
         message="API funcionando!",
-        timestamp=str(datetime.utcnow())
+        timestamp=str(datetime.utcnow()),
+        environment=os.getenv("RAILWAY_ENVIRONMENT", "local")
     ), 200
 
-# ─── SPA estático (opcional) ───────────────────────────────
-@app.route("/", defaults={"path": ""})
-@app.route("/<path:path>")
-def serve_frontend(path: str):
-    """
-    Devolve arquivos do build do React.
-    Se não encontrar, devolve index.html para suportar roteamento SPA.
-    """
-    static_folder = app.static_folder
-    if not static_folder:
-        return jsonify(error="No static folder configured"), 404
-        
-    requested = Path(static_folder) / path
-    if path and requested.exists():
-        return send_from_directory(static_folder, path)
-    
-    index_html = Path(static_folder) / "index.html"
-    if index_html.exists():
-        return send_from_directory(static_folder, "index.html")
-    
-    return jsonify(error="Frontend não encontrado"), 404
-
-# ─── Import datetime para o test ───────────────────────────
-from datetime import datetime
+# ─── Rota raiz ─────────────────────────────────────────────
+@app.route("/")
+def root():
+    return jsonify(
+        message="LeilãoGPT Backend API",
+        version="1.0.0",
+        endpoints={
+            "health": "/health",
+            "api": "/api",
+            "docs": "Acesse /api para ver os endpoints disponíveis"
+        }
+    ), 200
 
 # ─── Execução direta ───────────────────────────────────────
 if __name__ == "__main__":
