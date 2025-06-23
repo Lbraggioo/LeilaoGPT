@@ -1,23 +1,40 @@
 from flask import Blueprint, request, jsonify
-from ..models.user import db, User
-from ..utils.auth import token_required, validate_json_data
+from models.user import db, User  # ← MUDANÇA: import sem ..
+from utils.auth import token_required  # ← MUDANÇA: import sem .. e removido validate_json_data
 import re
 
 auth_bp = Blueprint("auth", __name__)
 
 
 # ────────────────────────────────
-# POST /auth/login - COM DEBUG
+# POST /auth/login - SIMPLIFICADO
 # ────────────────────────────────
-@auth_bp.route("/login", methods=["POST"])
-@validate_json_data(["username", "password"])
-def login(data):
-    """Endpoint para login de usuários - COM DEBUG"""
+@auth_bp.route("/login", methods=["POST", "OPTIONS"])
+def login():
+    """Endpoint para login de usuários - SIMPLIFICADO"""
+    
+    # Trata OPTIONS para CORS
+    if request.method == "OPTIONS":
+        return "", 200
+    
     try:
         print("🔍 DEBUG: Iniciando login...")
         
-        username = data["username"].strip()
-        password = data["password"]
+        # Validação manual dos dados
+        if not request.is_json:
+            return jsonify({"message": "Content-Type deve ser application/json"}), 400
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({"message": "Dados JSON não fornecidos"}), 400
+        
+        username = data.get("username")
+        password = data.get("password")
+        
+        if not username or not password:
+            return jsonify({"message": "Username e password são obrigatórios"}), 400
+        
+        username = username.strip()
         
         print(f"🔍 DEBUG: Username recebido: '{username}'")
         print(f"🔍 DEBUG: Password length: {len(password)}")
@@ -90,8 +107,11 @@ def login(data):
 # ────────────────────────────────
 # POST /auth/register
 # ────────────────────────────────
-@auth_bp.route("/register", methods=["POST"])
+@auth_bp.route("/register", methods=["POST", "OPTIONS"])
 def register():
+    if request.method == "OPTIONS":
+        return "", 200
+        
     data = request.get_json() or {}
     email    = data.get("email")
     username = data.get("username")
@@ -119,19 +139,23 @@ def register():
 # GET /auth/me          – valida o token
 # (mantém compat. com /verify-token se quiser)
 # ────────────────────────────────
-@auth_bp.route("/me", methods=["GET"])
-@auth_bp.route("/verify-token", methods=["GET", "POST"])
+@auth_bp.route("/me", methods=["GET", "OPTIONS"])
+@auth_bp.route("/verify-token", methods=["GET", "POST", "OPTIONS"])
 @token_required
 def me(current_user):
     """Retorna dados do usuário se o token for válido"""
+    if request.method == "OPTIONS":
+        return "", 200
     return jsonify({"user": {"email": current_user.email}}), 200
 
 
 # ────────────────────────────────
 # POST /auth/logout
 # ────────────────────────────────
-@auth_bp.route("/logout", methods=["POST"])
+@auth_bp.route("/logout", methods=["POST", "OPTIONS"])
 @token_required
 def logout(current_user):
     """Logout (front apenas descarta o token, mas mantemos compatibilidade)"""
+    if request.method == "OPTIONS":
+        return "", 200
     return "", 204
