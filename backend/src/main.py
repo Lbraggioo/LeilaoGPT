@@ -1,5 +1,5 @@
 """
-Backend principal do Chatbot.
+Backend principal do Chatbot - SOLUÇÃO DEFINITIVA.
 – Flask + SQLAlchemy + JWT + CORS
 – Serve a API em /api/* e, opcionalmente, o SPA estático.
 """
@@ -8,7 +8,8 @@ import os
 import sys
 from pathlib import Path
 from dotenv import load_dotenv
-from flask import Flask, send_from_directory, jsonify, request, make_response
+from flask import Flask, send_from_directory, jsonify
+from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 
 # Carrega variáveis de ambiente (.env)
@@ -19,7 +20,7 @@ load_dotenv()
 # ───────────────────────────────────────────────────────────
 app = Flask(
     __name__,
-    static_folder=str(Path(__file__).parent / "routes" / "static"),   # build do frontend (opcional)
+    static_folder=str(Path(__file__).parent / "routes" / "static"),
 )
 
 # Debug detalhado em desenvolvimento
@@ -44,87 +45,41 @@ app.config.update(
 jwt = JWTManager(app)
 
 # ─── Banco de Dados ────────────────────────────────────────
-from .models.user import db            # ← CORRETO: import relativo
-from .utils.database import init_database  # ← CORRETO: import relativo
+from .models.user import db
+from .utils.database import init_database
 
-app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
-    "DATABASE_URL"
-)
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)
 init_database(app)
 
-# ─── CORS MANUAL APENAS ────────────────────────────────────
-@app.before_request
-def handle_preflight():
-    """Trata requisições OPTIONS (preflight) do CORS"""
-    if request.method == "OPTIONS":
-        res = make_response()
-        # Lista de origens permitidas
-        allowed_origins = [
-            'http://localhost:8080',
-            'http://localhost:5173', 
-            'https://leilaogpt-production.up.railway.app'
-        ]
-        
-        origin = request.headers.get('Origin')
-        print(f"🔍 Origin recebida: {origin}")  # Debug
-        
-        if origin in allowed_origins:
-            res.headers['Access-Control-Allow-Origin'] = origin
-        else:
-            res.headers['Access-Control-Allow-Origin'] = 'http://localhost:8080'
-            
-        res.headers['Access-Control-Allow-Methods'] = 'GET,POST,PUT,DELETE,OPTIONS,PATCH'
-        res.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization,X-Requested-With'
-        res.headers['Access-Control-Allow-Credentials'] = 'true'
-        return res
-
-@app.after_request
-def after_request(response):
-    """Adiciona headers CORS a todas as respostas"""
-    # Lista de origens permitidas
-    allowed_origins = [
-        'http://localhost:8080',
-        'http://localhost:5173', 
-        'https://leilaogpt-production.up.railway.app'
-    ]
-    
-    origin = request.headers.get('Origin')
-    print(f"🔍 Origin na resposta: {origin}")  # Debug
-    
-    if origin in allowed_origins:
-        response.headers['Access-Control-Allow-Origin'] = origin
-    else:
-        response.headers['Access-Control-Allow-Origin'] = 'http://localhost:8080'
-        
-    response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization,X-Requested-With'
-    response.headers['Access-Control-Allow-Methods'] = 'GET,POST,PUT,DELETE,OPTIONS,PATCH'
-    response.headers['Access-Control-Allow-Credentials'] = 'true'
-    return response
-
-# ─── Error Handler para debug ──────────────────────────────
-@app.errorhandler(500)
-def handle_internal_error(error):
-    """Captura erros 500 para debug"""
-    print(f"🚨 Erro 500: {error}")
-    print(f"🚨 Exception: {repr(error)}")
-    return jsonify({"error": "Internal server error", "details": str(error)}), 500
+# ─── CORS DEFINITIVO ────────────────────────────────────────
+CORS(
+    app,
+    origins=[
+        "http://localhost:8080",
+        "http://localhost:5173", 
+        "https://leilaogpt-production.up.railway.app"
+    ],
+    supports_credentials=True,
+    methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "X-Requested-With"],
+)
 
 # ─── Blueprints / Rotas ────────────────────────────────────
-from .routes.auth import auth_bp              # ← CORRETO: import relativo
-from .routes.user import user_bp              # ← CORRETO: import relativo  
-from .routes.chat import chat_bp              # ← CORRETO: import relativo
-from .routes.admin import admin_bp            # ← CORRETO: import relativo
-from .routes.admin_routes import admin_routes_bp  # ← CORRETO: import relativo
-from .routes.upload import upload_bp          # ← CORRETO: import relativo
+from .routes.auth import auth_bp
+from .routes.user import user_bp
+from .routes.chat import chat_bp
+from .routes.admin import admin_bp
+from .routes.admin_routes import admin_routes_bp
+from .routes.upload import upload_bp
 
 app.register_blueprint(auth_bp, url_prefix="/api/auth")
 app.register_blueprint(user_bp, url_prefix="/api")
 app.register_blueprint(chat_bp, url_prefix="/api/chat")
 app.register_blueprint(admin_bp, url_prefix="/api/admin")
 app.register_blueprint(admin_routes_bp, url_prefix="/")
-app.register_blueprint(upload_bp, url_prefix="/api")  # ← VOLTA PARA /api
+app.register_blueprint(upload_bp, url_prefix="/api")
 
 # ─── Debug das rotas ───────────────────────────────────────
 print("🚀 Rotas registradas:")
