@@ -1,18 +1,13 @@
 // src/lib/api.ts
-const isDevelopment = window.location.hostname === 'localhost' || 
-                     window.location.hostname === '127.0.0.1';
 
-const BASE = isDevelopment 
-  ? "http://localhost:5000/api"
-  : "https://leilaogpt-production.up.railway.app/api";
+// Force production URL since backend is on Railway
+const BASE = "https://leilaogpt-production.up.railway.app/api";
 
 console.log("🔍 API BASE URL:", BASE);
-console.log("🔍 Environment:", isDevelopment ? 'development' : 'production');
 
 /**
  * Helper central de chamadas REST.
  * - Injeta JWT no header Authorization (quando existir)
- * - Inclui cookies (`credentials: "include"`) p/ quem usar HttpOnly
  * - Converte JSON, mas devolve {} quando o backend responde 204
  */
 export async function api<T = unknown>(
