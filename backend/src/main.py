@@ -45,8 +45,8 @@ app.config.update(
 jwt = JWTManager(app)
 
 # ─── Banco de Dados ────────────────────────────────────────
-from models.user import db            # ← MUDANÇA: import relativo
-from utils.database import init_database  # ← MUDANÇA: import relativo
+from .models.user import db            # ← CORRETO: import relativo
+from .utils.database import init_database  # ← CORRETO: import relativo
 
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
     "DATABASE_URL", "sqlite:///database/app.db"
@@ -79,12 +79,12 @@ CORS(
 )
 
 # ─── Blueprints / Rotas ────────────────────────────────────
-from routes.auth import auth_bp              # ← MUDANÇA: import relativo
-from routes.user import user_bp              # ← MUDANÇA: import relativo  
-from routes.chat import chat_bp              # ← MUDANÇA: import relativo
-from routes.admin import admin_bp            # ← MUDANÇA: import relativo
-from routes.admin_routes import admin_routes_bp  # ← MUDANÇA: import relativo
-from routes.upload import upload_bp          # ← MUDANÇA: import relativo
+from .routes.auth import auth_bp              # ← CORRETO: import relativo
+from .routes.user import user_bp              # ← CORRETO: import relativo  
+from .routes.chat import chat_bp              # ← CORRETO: import relativo
+from .routes.admin import admin_bp            # ← CORRETO: import relativo
+from .routes.admin_routes import admin_routes_bp  # ← CORRETO: import relativo
+from .routes.upload import upload_bp          # ← CORRETO: import relativo
 
 app.register_blueprint(auth_bp, url_prefix="/api/auth")
 app.register_blueprint(user_bp, url_prefix="/api")
