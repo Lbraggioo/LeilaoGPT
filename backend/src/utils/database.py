@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from models.user import db, User
+from ..models.user import db, User  # ← CORRIGIDO: import relativo
 
 # Carrega variáveis de ambiente
 load_dotenv()

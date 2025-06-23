@@ -1,6 +1,6 @@
 from functools import wraps
 from flask import request, jsonify, current_app
-from models.user import db, User  
+from ..models.user import db, User  # ← CORRIGIDO: import relativo
 import jwt
 
 def token_required(f):
@@ -70,4 +70,3 @@ def validate_json_data(required_fields):
         
         return decorated
     return decorator
-
