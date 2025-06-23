@@ -8,7 +8,7 @@ import os
 import sys
 from pathlib import Path
 from dotenv import load_dotenv
-from flask import Flask, send_from_directory, jsonify
+from flask import Flask, send_from_directory, jsonify, request, make_response
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 
@@ -55,14 +55,36 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)
 init_database(app)
 
-# ─── CORS SIMPLIFICADO ────────────────────────────────────
+# ─── CORS DEFINITIVO ───────────────────────────────────────
+# Configuração Flask-CORS básica
 CORS(
     app,
-    origins="*",  # Permite qualquer origem (funciona garantido)
+    origins="*",
     supports_credentials=True,
     methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type", "X-Requested-With"],
 )
+
+# Tratamento manual para garantir que funcione
+@app.before_request
+def handle_preflight():
+    """Trata requisições OPTIONS (preflight) do CORS"""
+    if request.method == "OPTIONS":
+        res = make_response()
+        res.headers['Access-Control-Allow-Origin'] = '*'
+        res.headers['Access-Control-Allow-Methods'] = 'GET,POST,PUT,DELETE,OPTIONS,PATCH'
+        res.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization,X-Requested-With'
+        res.headers['Access-Control-Allow-Credentials'] = 'true'
+        return res
+
+@app.after_request
+def after_request(response):
+    """Adiciona headers CORS a todas as respostas"""
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Requested-With')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS,PATCH')
+    response.headers.add('Access-Control-Allow-Credentials', 'true')
+    return response
 
 # ─── Blueprints / Rotas ────────────────────────────────────
 from .routes.auth import auth_bp              # ← CORRETO: import relativo
