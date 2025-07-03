@@ -306,12 +306,21 @@ const ParagraphRenderer = memo(({ paragraph, index }: { paragraph: string; index
     }
     
     // Detecta linhas que parecem ser fórmulas matemáticas puras
-    if (/^[A-Za-z\s]*=\s*\\?frac|^[0-9,.\s]+\s*[+\-×]\s*[0-9,.\s]+|^[A-Za-z]\s*\\(leq|geq|times)/.test(trimmed)) {
+    // Inclui padrões como \frac{...}{...}, números com operações, etc.
+    if (
+      /\\frac\{[^}]+\}\{[^}]+\}/.test(trimmed) || // Detecta \frac{}{} 
+      /^\s*[\d.,]+\s*[+\-×=]\s*[\d.,]+/.test(trimmed) || // Detecta operações
+      /^[A-Za-z\s]*=\s*\\?frac/.test(trimmed) || // Detecta variável = \frac
+      /\\times|\\geq|\\leq|\\approx/.test(trimmed) || // Detecta comandos LaTeX
+      /^\s*[\d.,]+\s*\\times/.test(trimmed) // Detecta números com \times
+    ) {
+      // Limpa e formata o conteúdo matemático
       const mathContent = trimmed
+        .replace(/R\$/g, 'R\\$') // Escapa o símbolo de real
         .replace(/\s*=\s*/g, ' = ')
+        .replace(/\\times/g, ' \\times ')
         .replace(/\\geq/g, ' \\geq ')
         .replace(/\\leq/g, ' \\leq ')
-        .replace(/\\times/g, ' \\times ')
         .replace(/\\approx/g, ' \\approx ');
       
       return (
@@ -523,7 +532,7 @@ const ParagraphRenderer = memo(({ paragraph, index }: { paragraph: string; index
         </span>
       </div>
     );
-  }, [paragraph, parser, index]);
+  }, [paragraph, index]);
 
   return <React.Fragment key={`para-${index}`}>{content}</React.Fragment>;
 });
