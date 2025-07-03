@@ -26,6 +26,8 @@ class MarkdownParser {
       /\\\((.*?)\\\)/g,           // Math inline (LaTeX inline)
       /\$\$(.*?)\$\$/gs,          // Math block alternativo
       /\$([^$]+)\$/g,             // Math inline alternativo
+      /\\frac\{([^}]+)\}\{([^}]+)\}/g, // Frações LaTeX diretas
+      /\\text\{([^}]+)\}/g,       // Texto LaTeX direto
       /\[([^\]]+)\]\(([^)]+)\)/g, // Links
       /\*\*([^*]+)\*\*/g,         // Bold
       /\*([^*]+)\*/g,             // Italic
@@ -116,44 +118,56 @@ class MarkdownParser {
           content: match[1],
           key: `math-${key}`
         };
-      case 4: // Links
+      case 4: // Frações LaTeX diretas
+        return {
+          type: 'math',
+          content: `\\frac{${match[1]}}{${match[2]}}`,
+          key: `math-${key}`
+        };
+      case 5: // Texto LaTeX direto
+        return {
+          type: 'math',
+          content: `\\text{${match[1]}}`,
+          key: `math-${key}`
+        };
+      case 6: // Links
         return {
           type: 'link',
           content: match[1],
           url: match[2],
           key: `link-${key}`
         };
-      case 5: // Bold
+      case 7: // Bold
         return {
           type: 'bold',
           content: match[1],
           key: `bold-${key}`
         };
-      case 6: // Italic
+      case 8: // Italic
         return {
           type: 'italic',
           content: match[1],
           key: `italic-${key}`
         };
-      case 7: // Code
+      case 9: // Code
         return {
           type: 'code',
           content: match[1],
           key: `code-${key}`
         };
-      case 8: // Money
+      case 10: // Money
         return {
           type: 'money',
           content: `R$ ${match[1]}`,
           key: `money-${key}`
         };
-      case 9: // Percent
-      case 10: // Rating
-      case 11: // Rating text
+      case 11: // Percent
+      case 12: // Rating
+      case 13: // Rating text
         return {
-          type: patternIndex === 9 ? 'percent' : 'rating',
+          type: patternIndex === 11 ? 'percent' : 'rating',
           content: match[1],
-          key: `${patternIndex === 9 ? 'percent' : 'rating'}-${key}`
+          key: `${patternIndex === 11 ? 'percent' : 'rating'}-${key}`
         };
       default:
         return null;
@@ -165,20 +179,32 @@ class MarkdownParser {
 const MathRenderer = memo(({ content, displayMode }: { content: string; displayMode: boolean }) => {
   const html = useMemo(() => {
     try {
-      return katex.renderToString(content, {
+      // Pré-processa o conteúdo para corrigir sintaxes comuns
+      let processedContent = content
+        .replace(/\\times/g, ' \\times ')
+        .replace(/\\geq/g, ' \\geq ')
+        .replace(/\\leq/g, ' \\leq ')
+        .replace(/\\approx/g, ' \\approx ')
+        .replace(/\{([^}]+)\}/g, '{$1}')
+        .replace(/R\$/g, 'R\\$');
+      
+      return katex.renderToString(processedContent, {
         displayMode,
         throwOnError: false,
         errorColor: '#cc0000',
-        strict: 'warn',
+        strict: false,
         trust: true,
         macros: {
-          "\\times": "\\cdot",
+          "\\times": "\\times",
           "\\geq": "\\geq",
           "\\leq": "\\leq",
           "\\text": "\\text",
           "\\frac": "\\frac",
           "\\sqrt": "\\sqrt",
-          "\\approx": "\\approx"
+          "\\approx": "\\approx",
+          "\\cdot": "\\cdot",
+          "\\ge": "\\geq",
+          "\\le": "\\leq"
         }
       });
     } catch (error) {
@@ -189,7 +215,7 @@ const MathRenderer = memo(({ content, displayMode }: { content: string; displayM
 
   return (
     <span
-      className={displayMode ? "block my-4 overflow-x-auto" : "inline-block mx-1"}
+      className={displayMode ? "block my-4 overflow-x-auto text-center" : "inline-block mx-1"}
       dangerouslySetInnerHTML={{ __html: html }}
     />
   );
@@ -276,7 +302,23 @@ const ParagraphRenderer = memo(({ paragraph, index }: { paragraph: string; index
     
     // Ignora linhas que são apenas separadores
     if (/^-{3,}$/.test(trimmed) || /^_{3,}$/.test(trimmed) || /^\*{3,}$/.test(trimmed)) {
-      return null; // Retorna null para ignorar completamente
+      return null;
+    }
+    
+    // Detecta linhas que parecem ser fórmulas matemáticas puras
+    if (/^[A-Za-z\s]*=\s*\\?frac|^[0-9,.\s]+\s*[+\-×]\s*[0-9,.\s]+|^[A-Za-z]\s*\\(leq|geq|times)/.test(trimmed)) {
+      const mathContent = trimmed
+        .replace(/\s*=\s*/g, ' = ')
+        .replace(/\\geq/g, ' \\geq ')
+        .replace(/\\leq/g, ' \\leq ')
+        .replace(/\\times/g, ' \\times ')
+        .replace(/\\approx/g, ' \\approx ');
+      
+      return (
+        <div key={`math-line-${index}`} className="mb-4">
+          <MathRenderer content={mathContent} displayMode={true} />
+        </div>
+      );
     }
     
     // Detecta tabelas simples com pipes |
@@ -286,7 +328,6 @@ const ParagraphRenderer = memo(({ paragraph, index }: { paragraph: string; index
         line.split('|').map(cell => cell.trim()).filter(cell => cell)
       );
       
-      // Verifica se tem linha separadora (segundo row com apenas hífens)
       const hasSeparator = rows.length > 1 && 
         rows[1].every(cell => /^-+$/.test(cell.replace(/:/g, '')));
       
@@ -500,8 +541,8 @@ const FormattedMessage = memo(({ content }: FormattedMessageProps) => {
   const paragraphs = useMemo(() => {
     if (!cleanContent) return [];
     return cleanContent.split('\n\n')
-      .filter(p => p.trim() && p.trim() !== '---') // Filtra parágrafos vazios e linhas com apenas "---"
-      .map(p => p.trim()); // Remove espaços extras
+      .filter(p => p.trim() && p.trim() !== '---')
+      .map(p => p.trim());
   }, [cleanContent]);
 
   return (
