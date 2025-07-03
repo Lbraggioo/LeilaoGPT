@@ -1,4 +1,6 @@
 import React, { memo, useMemo } from "react";
+import katex from "katex";
+import "katex/dist/katex.min.css";
 
 interface FormattedMessageProps {
   content: string;
@@ -6,7 +8,7 @@ interface FormattedMessageProps {
 
 // Tipos para melhor type safety
 type TextSegment = {
-  type: 'text' | 'bold' | 'italic' | 'code' | 'link' | 'money' | 'percent' | 'rating';
+  type: 'text' | 'bold' | 'italic' | 'code' | 'link' | 'money' | 'percent' | 'rating' | 'math' | 'mathBlock';
   content: string;
   url?: string;
   key: string;
@@ -20,6 +22,10 @@ class MarkdownParser {
   private constructor() {
     // Regex compiladas uma vez para melhor performance
     this.patterns = [
+      /\\\[(.*?)\\\]/gs,          // Math block (LaTeX display)
+      /\\\((.*?)\\\)/g,           // Math inline (LaTeX inline)
+      /\$\$(.*?)\$\$/gs,          // Math block alternativo
+      /\$([^$]+)\$/g,             // Math inline alternativo
       /\[([^\]]+)\]\(([^)]+)\)/g, // Links
       /\*\*([^*]+)\*\*/g,         // Bold
       /\*([^*]+)\*/g,             // Italic
@@ -96,44 +102,58 @@ class MarkdownParser {
 
   private createSegment(match: RegExpMatchArray, patternIndex: number, key: number): TextSegment | null {
     switch (patternIndex) {
-      case 0: // Links
+      case 0: // Math block \[...\]
+      case 2: // Math block $$...$$
+        return {
+          type: 'mathBlock',
+          content: match[1],
+          key: `mathBlock-${key}`
+        };
+      case 1: // Math inline \(...\)
+      case 3: // Math inline $...$
+        return {
+          type: 'math',
+          content: match[1],
+          key: `math-${key}`
+        };
+      case 4: // Links
         return {
           type: 'link',
           content: match[1],
           url: match[2],
           key: `link-${key}`
         };
-      case 1: // Bold
+      case 5: // Bold
         return {
           type: 'bold',
           content: match[1],
           key: `bold-${key}`
         };
-      case 2: // Italic
+      case 6: // Italic
         return {
           type: 'italic',
           content: match[1],
           key: `italic-${key}`
         };
-      case 3: // Code
+      case 7: // Code
         return {
           type: 'code',
           content: match[1],
           key: `code-${key}`
         };
-      case 4: // Money
+      case 8: // Money
         return {
           type: 'money',
           content: `R$ ${match[1]}`,
           key: `money-${key}`
         };
-      case 5: // Percent
-      case 6: // Rating
-      case 7: // Rating text
+      case 9: // Percent
+      case 10: // Rating
+      case 11: // Rating text
         return {
-          type: patternIndex === 5 ? 'percent' : 'rating',
+          type: patternIndex === 9 ? 'percent' : 'rating',
           content: match[1],
-          key: `${patternIndex === 5 ? 'percent' : 'rating'}-${key}`
+          key: `${patternIndex === 9 ? 'percent' : 'rating'}-${key}`
         };
       default:
         return null;
@@ -141,9 +161,51 @@ class MarkdownParser {
   }
 }
 
+// Componente para renderizar matemática
+const MathRenderer = memo(({ content, displayMode }: { content: string; displayMode: boolean }) => {
+  const html = useMemo(() => {
+    try {
+      return katex.renderToString(content, {
+        displayMode,
+        throwOnError: false,
+        errorColor: '#cc0000',
+        strict: 'warn',
+        trust: true,
+        macros: {
+          "\\times": "\\cdot",
+          "\\geq": "\\geq",
+          "\\leq": "\\leq",
+          "\\text": "\\text",
+          "\\frac": "\\frac",
+          "\\sqrt": "\\sqrt",
+          "\\approx": "\\approx"
+        }
+      });
+    } catch (error) {
+      console.error('KaTeX error:', error);
+      return `<span style="color: #cc0000;">Erro ao renderizar fórmula: ${content}</span>`;
+    }
+  }, [content, displayMode]);
+
+  return (
+    <span
+      className={displayMode ? "block my-4 overflow-x-auto" : "inline-block mx-1"}
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
+  );
+});
+
+MathRenderer.displayName = 'MathRenderer';
+
 // Componente para renderizar segmentos
 const TextSegmentRenderer = memo(({ segment }: { segment: TextSegment }) => {
   switch (segment.type) {
+    case 'math':
+      return <MathRenderer content={segment.content} displayMode={false} />;
+    
+    case 'mathBlock':
+      return <MathRenderer content={segment.content} displayMode={true} />;
+    
     case 'link':
       return (
         <a
